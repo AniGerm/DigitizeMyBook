@@ -1,0 +1,17 @@
+[Unit]
+Description=digitizeMyBook
+After=network.target
+
+[Service]
+Type=simple
+User=digitizemybook
+Group=digitizemybook
+WorkingDirectory=/opt/digitizemybook
+Environment=PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK=True
+Environment=PYTHONPATH=/opt/digitizemybook/backend
+ExecStart=/opt/digitizemybook/venv/bin/python -m uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port 8765
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

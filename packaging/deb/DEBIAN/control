@@ -1,0 +1,10 @@
+Package: digitizemybook
+Version: __VERSION__
+Section: graphics
+Priority: optional
+Architecture: amd64
+Depends: python3 (>= 3.12), python3-venv, python3-pip, pkexec, policykit-1
+Maintainer: DigitizeMyBook <digitizemybook@users.noreply.github.com>
+Description: digitizeMyBook – Scans und PDFs lokal in EPUB und PDF
+ GPU-OCR für Buchseiten, lokal auf diesem Rechner.
+Homepage: https://github.com/Anigerm/DigitizeMyBook

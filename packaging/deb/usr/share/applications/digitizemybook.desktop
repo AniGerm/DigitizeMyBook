@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=digitizeMyBook
+GenericName=Buch digitalisieren
+Comment=Scans und PDFs lokal in EPUB und PDF verwandeln
+Exec=xdg-open http://127.0.0.1:8765/
+Icon=digitizemybook
+Categories=Graphics;Office;
+Keywords=ocr;epub;pdf;buch;scan;
+Terminal=false
+StartupNotify=true

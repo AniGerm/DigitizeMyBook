@@ -1,0 +1,70 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-deb:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Verify tag matches VERSION
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          VER="$(tr -d '[:space:]' < VERSION)"
+          if [ "$TAG" != "$VER" ]; then
+            echo "::error::Tag v${TAG} stimmt nicht mit VERSION ${VER} überein."
+            exit 1
+          fi
+          echo "Version OK: ${VER}"
+
+      - name: Install dpkg-deb tools
+        run: sudo apt-get update && sudo apt-get install -y dpkg-dev rsync
+
+      - name: Build .deb
+        run: bash scripts/build_deb.sh
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-deb
+          path: dist/DigitizeMyBook-*.deb
+          if-no-files-found: error
+
+  publish-release:
+    needs: [build-deb]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download .deb
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-deb
+          path: dist-release
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          draft: false
+          generate_release_notes: true
+          files: dist-release/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

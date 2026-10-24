@@ -1,0 +1,39 @@
+#!/bin/bash
+set -e
+
+DATA_DIR=/var/lib/digitizemybook
+OPT_DIR=/opt/digitizemybook
+
+if ! getent group digitizemybook >/dev/null; then
+  addgroup --system digitizemybook
+fi
+if ! getent passwd digitizemybook >/dev/null; then
+  adduser --system --ingroup digitizemybook --home "$DATA_DIR" --shell /usr/sbin/nologin digitizemybook
+fi
+
+mkdir -p "$DATA_DIR"
+chown -R digitizemybook:digitizemybook "$DATA_DIR"
+chmod 750 "$DATA_DIR"
+
+python3 -m venv "$OPT_DIR/venv"
+"$OPT_DIR/venv/bin/pip" install --upgrade pip
+"$OPT_DIR/venv/bin/pip" install -r "$OPT_DIR/backend/requirements.txt"
+if ! "$OPT_DIR/venv/bin/python" -c "import paddleocr" >/dev/null 2>&1; then
+  "$OPT_DIR/venv/bin/pip" install paddlepaddle-gpu==3.2.1 -i https://www.paddlepaddle.org.cn/packages/stable/cu129/ || true
+  "$OPT_DIR/venv/bin/pip" install -U "paddleocr[doc-parser]" || true
+fi
+
+chown -R digitizemybook:digitizemybook "$OPT_DIR"
+chmod 755 /usr/lib/digitizemybook/apply-update.sh || true
+
+if command -v update-desktop-database >/dev/null 2>&1; then
+  update-desktop-database /usr/share/applications >/dev/null 2>&1 || true
+fi
+
+if command -v systemctl >/dev/null 2>&1; then
+  systemctl daemon-reload || true
+  systemctl enable digitizemybook.service || true
+  systemctl restart digitizemybook.service || systemctl start digitizemybook.service || true
+fi
+
+exit 0
